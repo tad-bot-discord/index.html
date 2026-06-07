@@ -2,3 +2,832 @@
 <!--Please, leave this page and proceed to do something different.-->
 
 <!--CODE-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tad - discord bot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f0f;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            text-transform: lowercase;
+        }
+
+        footer, footer * {
+            text-transform: none !important;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .lang-switcher, .rectangle-container, .features-section, .bottom-cta, footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Language Switcher */
+        .lang-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .lang-switcher select {
+            background: transparent;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .lang-switcher option {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        /* Rectangle Animation Container */
+        .rectangle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .rectangle {
+            width: 0;
+            height: 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            opacity: 0;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+
+        .rectangle.animate {
+            width: 90%;
+            max-width: 600px;
+            height: auto;
+            min-height: 400px;
+            opacity: 1;
+            padding: 60px 40px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Logo Section */
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+
+        .logo-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .logo-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 8px;
+            text-transform: lowercase;
+            color: #fff;
+        }
+
+        /* Typing Animation */
+        .typing-container {
+            text-align: center;
+            margin: 30px 0;
+            min-height: 60px;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .typing-container.show {
+            opacity: 1;
+        }
+
+        .typing-text {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background-color: rgba(255, 255, 255, 0.7);
+            margin-left: 5px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Buttons Section */
+        .buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 40px 0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease 0.5s;
+        }
+
+        .buttons-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 60px;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .feature-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card.reverse {
+            flex-direction: row-reverse;
+        }
+
+        .feature-image-container {
+            flex: 1;
+            perspective: 1000px;
+        }
+
+        .feature-image {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            transition: transform 0.5s ease;
+            transform-style: preserve-3d;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .feature-image-container:hover .feature-image {
+            transform: rotateY(15deg) rotateX(5deg) scale(1.05);
+        }
+
+        .feature-content {
+            flex: 1;
+        }
+
+        .feature-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-weight: 400;
+            color: #fff;
+        }
+
+        .feature-description {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 300;
+        }
+
+        /* Bottom CTA */
+        .bottom-cta {
+            text-align: center;
+            padding: 100px 20px;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .bottom-cta.show {
+            opacity: 1;
+        }
+
+        .cta-text {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .cta-button {
+            padding: 20px 50px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            transition: all 0.4s ease;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .feature-card,
+            .feature-card.reverse {
+                flex-direction: column;
+            }
+
+            .title {
+                font-size: 2rem;
+                letter-spacing: 5px;
+            }
+
+            .cta-text {
+                font-size: 1.5rem;
+            }
+
+            .buttons-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                text-align: center;
+            }
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+        <select id="languageSelect" onchange="changeLanguage(this.value)">
+            <option value="en">english</option>
+            <option value="en-GB">british english</option>
+            <option value="es">español</option>
+            <option value="pt">português</option>
+            <option value="ru">русский</option>
+            <option value="zh-TW">繁體中文 (tw)</option>
+            <option value="zh-SG">中文 (sg)</option>
+            <option value="ja">日本語</option>
+            <option value="ar">العربية</option>
+            <option value="it">italiano</option>
+        </select>
+    </div>
+
+    <!-- Main Content -->
+    <div class="rectangle-container">
+        <div class="rectangle" id="rectangle">
+            <!-- Logo Section -->
+            <div class="logo-section" id="logoSection">
+                <img src="https://raw.githubusercontent.com/tad-bot-discord/index.html/refs/heads/main/1085f70b85ba3eeadd84c3327297d8d4.png" alt="tad logo" class="logo-image">
+                <h1 class="title" data-key="title">tad</h1>
+            </div>
+
+            <!-- Typing Animation -->
+            <div class="typing-container" id="typingContainer">
+                <p class="typing-text" id="typingText">
+                    <span id="textSpan"></span><span class="cursor"></span>
+                </p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="buttons-container" id="buttonsContainer">
+                <a href="https://discord.com/oauth2/authorize?client_id=1511560367980023888&permissions=519624322294&integration_type=0&scope=bot" class="btn" data-key="inviteEnough" target="_blank">invite tad (standard permissions)</a>
+                <a href="https://discord.com/oauth2/authorize?client_id=1511560367980023888&permissions=8&integration_type=0&scope=bot" class="btn" data-key="inviteAdmin" target="_blank">invite tad (admin permissions)</a>
+                <a href="https://discord.gg/EtG5MZRe9Z" class="btn" data-key="joinSupport" target="_blank">join support server</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="feature-card" id="feature1">
+            <div class="feature-image-container">
+                <img src="https://i.postimg.cc/Mq9y517k/citrus-enhanced.jpg" alt="feature 1" class="feature-image">
+            </div>
+            <div class="feature-content">
+                <h2 class="feature-title" data-key="feature1Title">a bot built to make your server more fun and engaging</h2>
+                <p class="feature-description" data-key="feature1Desc">built to enhance the fun in your server with a collection of features designed to encourage engagement, spark interactions, and keep your community active. from entertaining activities to useful utilities and customizable systems, everything is designed to create a more enjoyable experience and help your server feel more lively, connected, and welcoming.</p>
+            </div>
+        </div>
+
+        <div class="feature-card reverse" id="feature2">
+            <div class="feature-image-container">
+                <img src="https://i.postimg.cc/Mq9y517k/citrus-enhanced.jpg" alt="feature 2" class="feature-image">
+            </div>
+            <div class="feature-content">
+                <h2 class="feature-title" data-key="feature2Title">a bot built to build your legacy</h2>
+                <p class="feature-description" data-key="feature2Desc">reward activity and encourage engagement with a fully customizable leveling system. members can earn experience by participating in conversations, climb through levels, compete on leaderboards, and showcase their progress across the server.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <div class="bottom-cta" id="bottomCta">
+        <h2 class="cta-text" data-key="waitingText">what are you waiting for?</h2>
+        <a href="#" class="cta-button" onclick="scrollToTop(); return false;" data-key="addBotButton">add the bot!</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p data-key="copyright">© 2026 TDO. All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Canvas Background Animation
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        let mouse = { x: width / 2, y: height / 2 };
+        let smoothMouse = { x: width / 2, y: height / 2 };
+        let history = [];
+
+        window.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        function draw() {
+            smoothMouse.x += (mouse.x - smoothMouse.x) * 0.08;
+            smoothMouse.y += (mouse.y - smoothMouse.y) * 0.08;
+
+            history.push({ x: smoothMouse.x, y: smoothMouse.y });
+            if (history.length > 60) history.shift();
+
+            ctx.fillStyle = 'rgba(15, 15, 15, 0.15)'; 
+            ctx.fillRect(0, 0, width, height);
+
+            if (history.length > 2) {
+                ctx.beginPath();
+                ctx.moveTo(history[0].x, history[0].y);
+                
+                for (let i = 1; i < history.length - 1; i++) {
+                    let angle = i * 0.2 + Date.now() * 0.002;
+                    let waveOffset = Math.sin(angle) * 20;
+                    
+                    let dx = history[i+1].x - history[i-1].x;
+                    let dy = history[i+1].y - history[i-1].y;
+                    let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                    let nx = -dy / dist;
+                    let ny = dx / dist;
+
+                    let cx = history[i].x + nx * waveOffset;
+                    let cy = history[i].y + ny * waveOffset;
+                    
+                    let nextAngle = (i+1) * 0.2 + Date.now() * 0.002;
+                    let nextWaveOffset = Math.sin(nextAngle) * 20;
+                    let dx2 = (i < history.length - 2) ? history[i+2].x - history[i].x : dx;
+                    let dy2 = (i < history.length - 2) ? history[i+2].y - history[i].y : dy;
+                    let dist2 = Math.sqrt(dx2*dx2 + dy2*dy2) || 1;
+                    let nx2 = -dy2 / dist2;
+                    let ny2 = dx2 / dist2;
+                    let nextCx = history[i+1].x + nx2 * nextWaveOffset;
+                    let nextCy = history[i+1].y + ny2 * nextWaveOffset;
+
+                    ctx.quadraticCurveTo(cx, cy, nextCx, nextCy);
+                }
+                
+                let gradient = ctx.createLinearGradient(0, 0, width, height);
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
+                gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+                
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        // Translations
+        const translations = {
+            'en': {
+                title: 'tad',
+                inviteEnough: 'invite tad (standard permissions)',
+                inviteAdmin: 'invite tad (admin permissions)',
+                joinSupport: 'join support server',
+                feature1Title: 'a bot built to make your server more fun and engaging',
+                feature1Desc: 'built to enhance the fun in your server with a collection of features designed to encourage engagement, spark interactions, and keep your community active. from entertaining activities to useful utilities and customizable systems, everything is designed to create a more enjoyable experience and help your server feel more lively, connected, and welcoming.',
+                feature2Title: 'a bot built to build your legacy',
+                feature2Desc: 'reward activity and encourage engagement with a fully customizable leveling system. members can earn experience by participating in conversations, climb through levels, compete on leaderboards, and showcase their progress across the server.',
+                waitingText: 'what are you waiting for?',
+                addBotButton: 'add the bot!',
+                copyright: '© 2026 TDO. All Rights Reserved',
+                typingTexts: [
+                    'the best multi-purpose discord bot',
+                    'you can do a lot with this bot',
+                    'making your server more fun',
+                    'this bot gets the job done',
+                    'most of the features are free',
+                    'the first bot that always talks in lowercases'
+                ]
+            },
+            'en-GB': {
+                title: 'tad',
+                inviteEnough: 'invite tad (standard permissions)',
+                inviteAdmin: 'invite tad (admin permissions)',
+                joinSupport: 'join support server',
+                feature1Title: 'a bot built to make your server more fun and engaging',
+                feature1Desc: 'built to enhance the fun in your server with a collection of features designed to encourage engagement, spark interactions, and keep your community active. from entertaining activities to useful utilities and customisable systems, everything is designed to create a more enjoyable experience and help your server feel more lively, connected, and welcoming.',
+                feature2Title: 'a bot built to build your legacy',
+                feature2Desc: 'reward activity and encourage engagement with a fully customisable levelling system. members can earn experience by participating in conversations, climb through levels, compete on leaderboards, and showcase their progress across the server.',
+                waitingText: 'what are you waiting for?',
+                addBotButton: 'add the bot!',
+                copyright: '© 2026 TDO. All Rights Reserved',
+                typingTexts: [
+                    'the best multi-purpose discord bot',
+                    'you can do a lot with this bot',
+                    'making your server more fun',
+                    'this bot gets the job done',
+                    'most of the features are free',
+                    'the first bot that always talks in lowercases'
+                ]
+            },
+            'es': {
+                title: 'tad',
+                inviteEnough: 'invitar a tad (permisos estándar)',
+                inviteAdmin: 'invitar a tad (permisos de administrador)',
+                joinSupport: 'unirse al servidor de soporte',
+                feature1Title: 'un bot diseñado para hacer tu servidor más divertido y atractivo',
+                feature1Desc: 'diseñado para mejorar la diversión en tu servidor con una colección de características diseñadas para fomentar la participación, estimular las interacciones y mantener activa tu comunidad. desde actividades entretenidas hasta utilidades útiles y sistemas personalizables, todo está diseñado para crear una experiencia más agradable y ayudar a que tu servidor se sienta más animado, conectado y acogedor.',
+                feature2Title: 'un bot diseñado para construir tu legado',
+                feature2Desc: 'recompensa la actividad y fomenta la participación con un sistema de niveles totalmente personalizable. los miembros pueden ganar experiencia participando en conversaciones, subir de nivel, competir en clasificaciones y mostrar su progreso en todo el servidor.',
+                waitingText: '¿qué estás esperando?',
+                addBotButton: '¡añadir el bot!',
+                copyright: '© 2026 TDO. Todos los derechos reservados',
+                typingTexts: [
+                    'el mejor bot multipropósito de discord',
+                    'puedes hacer mucho con este bot',
+                    'haciendo tu servidor más divertido',
+                    'este bot hace el trabajo',
+                    'la mayoría de las características son gratis',
+                    'el primer bot que siempre habla en minúsculas'
+                ]
+            },
+            'pt': {
+                title: 'tad',
+                inviteEnough: 'convidar tad (permissões padrão)',
+                inviteAdmin: 'convidar tad (permissões de administrador)',
+                joinSupport: 'entrar no servidor de suporte',
+                feature1Title: 'um bot feito para tornar seu servidor mais divertido e envolvente',
+                feature1Desc: 'feito para aumentar a diversão no seu servidor com uma coleção de recursos projetados para incentivar o engajamento, estimular interações e manter sua comunidade ativa. de atividades divertidas a utilitários úteis e sistemas personalizáveis, tudo é projetado para criar uma experiência mais agradável e ajudar seu servidor a se sentir mais animado, conectado e acolhedor.',
+                feature2Title: 'um bot feito para construir seu legado',
+                feature2Desc: 'recompense a atividade e incentive o engajamento com um sistema de níveis totalmente personalizável. os membros podem ganhar experiência participando de conversas, subir de nível, competir em classificações e mostrar seu progresso em todo o servidor.',
+                waitingText: 'o que você está esperando?',
+                addBotButton: 'adicionar o bot!',
+                copyright: '© 2026 TDO. Todos os direitos reservados',
+                typingTexts: [
+                    'o melhor bot multiuso do discord',
+                    'você pode fazer muito com este bot',
+                    'tornando seu servidor mais divertido',
+                    'este bot faz o trabalho',
+                    'a maioria dos recursos é grátis',
+                    'o primeiro bot que sempre fala em minúsculas'
+                ]
+            },
+            'ru': {
+                title: 'tad',
+                inviteEnough: 'пригласить tad (стандартные разрешения)',
+                inviteAdmin: 'пригласить tad (административные разрешения)',
+                joinSupport: 'присоединиться к серверу поддержки',
+                feature1Title: 'бот, созданный чтобы сделать ваш сервер более весёлым и увлекательным',
+                feature1Desc: 'создан для улучшения веселья на вашем сервере с набором функций, предназначенных для поощрения вовлечённости, стимулирования взаимодействий и поддержания активности вашего сообщества. от развлекательных мероприятий до полезных утилит и настраиваемых систем — всё создано для создания более приятного опыта и помощи вашему серверу чувствовать себя более оживлённым, связанным и гостеприимным.',
+                feature2Title: 'бот, созданный для построения вашего наследия',
+                feature2Desc: 'вознаграждайте активность и поощряйте вовлечённость с полностью настраиваемой системой уровней. участники могут зарабатывать опыт, участвуя в разговорах, подниматься по уровням, соревноваться в таблицах лидеров и демонстрировать свой прогресс по всему серверу.',
+                waitingText: 'чего вы ждёте?',
+                addBotButton: 'добавить бота!',
+                copyright: '© 2026 TDO. Все права защищены',
+                typingTexts: [
+                    'лучший многоцелевой бот discord',
+                    'вы можете сделать многое с этим ботом',
+                    'делая ваш сервер веселее',
+                    'этот бот справляется с работой',
+                    'большинство функций бесплатны',
+                    'первый бот, который всегда говорит строчными буквами'
+                ]
+            },
+            'zh-TW': {
+                title: 'tad',
+                inviteEnough: '邀請 tad（標準權限）',
+                inviteAdmin: '邀請 tad（管理員權限）',
+                joinSupport: '加入支援伺服器',
+                feature1Title: '專為讓您的伺服器更有趣和更具吸引力而打造的機器人',
+                feature1Desc: '旨在通過一系列功能增強您伺服器的樂趣，這些功能旨在鼓勵參與、激發互動並保持您的社群活躍。從娛樂活動到實用的工具和可自訂的系統，一切都旨在創造更愉快的體驗，並幫助您的伺服器感覺更生動、更緊密聯繫且更受歡迎。',
+                feature2Title: '專為建立您的傳奇而打造的機器人',
+                feature2Desc: '通過完全可自訂的等級系統獎勵活動並鼓勵參與。成員可以通過參與對話獲得經驗值、提升等級、在排行榜上競爭並在整個伺服器中展示他們的進度。',
+                waitingText: '你還在等什麼？',
+                addBotButton: '添加機器人！',
+                copyright: '© 2026 TDO. 保留所有權利',
+                typingTexts: [
+                    '最好的多用途 discord 機器人',
+                    '你可以用這個機器人做很多事情',
+                    '讓你的伺服器更有趣',
+                    '這個機器人能完成工作',
+                    '大多數功能是免費的',
+                    '第一個總是小寫說話的機器人'
+                ]
+            },
+            'zh-SG': {
+                title: 'tad',
+                inviteEnough: '邀请 tad（标准权限）',
+                inviteAdmin: '邀请 tad（管理员权限）',
+                joinSupport: '加入支持服务器',
+                feature1Title: '专为让您的服务器更有趣和更具吸引力而打造的机器人',
+                feature1Desc: '旨在通过一系列功能增强您服务器的乐趣，这些功能旨在鼓励参与、激发互动并保持您的社区活跃。从娱乐活动到实用的工具和可自定义的系统，一切都旨在创造更愉快的体验，并帮助您的服务器感觉更生动、更紧密联系且更受欢迎。',
+                feature2Title: '专为建立您的传奇而打造的机器人',
+                feature2Desc: '通过完全可自定义的等级系统奖励活动并鼓励参与。成员可以通过参与对话获得经验值、提升等级、在排行榜上竞争并在整个服务器中展示他们的进度。',
+                waitingText: '你还在等什么？',
+                addBotButton: '添加机器人！',
+                copyright: '© 2026 TDO. 保留所有权利',
+                typingTexts: [
+                    '最好的多用途 discord 机器人',
+                    '你可以用这个机器人做很多事情',
+                    '让你的服务器更有趣',
+                    '这个机器人能完成工作',
+                    '大多数功能是免费的',
+                    '第一个总是小写说话的机器人'
+                ]
+            },
+            'ja': {
+                title: 'tad',
+                inviteEnough: 'tad を招待（標準権限）',
+                inviteAdmin: 'tad を招待（管理者権限）',
+                joinSupport: 'サポートサーバーに参加',
+                feature1Title: 'サーバーをより楽しく魅力的にするために作られたボット',
+                feature1Desc: 'エンゲージメントを促進し、相互作用を刺激し、コミュニティを活発に保つように設計された機能のコレクションで、サーバーの楽しさを向上させるために作られています。エンターテインメント活動から便利なユーティリティやカスタマイズ可能なシステムまで、すべてがより楽しい体験を作り出し、サーバーをより活気があり、つながりがあり、歓迎されるように感じさせるために設計されています。',
+                feature2Title: 'あなたの遺産を築くために作られたボット',
+                feature2Desc: '完全にカスタマイズ可能なレベルシステムで活動を報酬し、エンゲージメントを促進します。メンバーは会話に参加して経験値を獲得し、レベルを上げ、リーダーボードで競争し、サーバー全体で進捗を示すことができます。',
+                waitingText: '何を待っているの？',
+                addBotButton: 'ボットを追加！',
+                copyright: '© 2026 TDO. All Rights Reserved',
+                typingTexts: [
+                    '最高の多目的 discord ボット',
+                    'このボットでたくさんのことができる',
+                    'サーバーをより楽しくする',
+                    'このボットは仕事を成し遂げる',
+                    '機能のほとんどは無料',
+                    '常に小文字で話す最初のボット'
+                ]
+            },
+            'ar': {
+                title: 'tad',
+                inviteEnough: 'دعوة tad (أذونات قياسية)',
+                inviteAdmin: 'دعوة tad (أذونات المسؤول)',
+                joinSupport: 'الانضمام إلى خادم الدعم',
+                feature1Title: 'بوت مصمم لجعل خادمك أكثر متعة وجاذبية',
+                feature1Desc: 'مصمم لتعزيز المتعة في خادمك مع مجموعة من الميزات المصممة لتشجيع المشاركة وتحفيز التفاعلات والحفاظ على نشاط مجتمعك. من الأنشطة الترفيهية إلى الأدوات المفيدة والأنظمة القابلة للتخصيص، كل شيء مصمم لخلق تجربة أكثر متعة ومساعدة خادمك على الشعور بمزيد من الحيوية والترابط والترحيب.',
+                feature2Title: 'بوت مصمم لبناء إرثك',
+                feature2Desc: 'كافئ النشاط وشجع المشاركة مع نظام مستويات قابل للتخصيص بالكامل. يمكن للأعضاء كسب الخبرة من خلال المشاركة في المحادثات والصعود عبر المستويات والمنافسة في لوحات الصدارة وعرض تقدمهم عبر الخادم.',
+                waitingText: 'ماذا تنتظر؟',
+                addBotButton: 'أضف البوت!',
+                copyright: '© 2026 TDO. جميع الحقوق محفوظة',
+                typingTexts: [
+                    'أفضل بوت متعدد الأغراض في ديسكورد',
+                    'يمكنك فعل الكثير مع هذا البوت',
+                    'جعل خادمك أكثر متعة',
+                    'هذا البوت ينجز المهمة',
+                    'معظم الميزات مجانية',
+                    'أول بوت يتحدث دائماً بالأحرف الصغيرة'
+                ]
+            },
+            'it': {
+                title: 'tad',
+                inviteEnough: 'invita tad (permessi standard)',
+                inviteAdmin: 'invita tad (permessi amministratore)',
+                joinSupport: 'unisciti al server di supporto',
+                feature1Title: 'un bot creato per rendere il tuo server più divertente e coinvolgente',
+                feature1Desc: 'creato per migliorare il divertimento nel tuo server con una collezione di funzionalità progettate per incoraggiare il coinvolgimento, stimolare le interazioni e mantenere attiva la tua comunità. dalle attività divertenti alle utilità utili e ai sistemi personalizzabili, tutto è progettato per creare un\'esperienza più piacevole e aiutare il tuo server a sentirsi più vivace, connesso e accogliente.',
+                feature2Title: 'un bot creato per costruire la tua eredità',
+                feature2Desc: 'premia l\'attività e incoraggia il coinvolgimento con un sistema di livelli completamente personalizzabile. i membri possono guadagnare esperienza partecipando alle conversazioni, salire di livello, competere nelle classifiche e mostrare i loro progressi in tutto il server.',
+                waitingText: 'cosa aspetti?',
+                addBotButton: 'aggiungi il bot!',
+                copyright: '© 2026 TDO. Tutti i diritti riservati',
+                typingTexts: [
+                    'il miglior bot multiuso di discord',
+                    'puoi fare molto con questo bot',
+                    'rendendo il tuo server più divertente',
+                    'questo bot fa il lavoro',
+                    'la maggior parte delle funzionalità è gratuita',
+                    'il primo bot che parla sempre in minuscolo'
+                ]
+            }
+        };
+
+        let currentLang = 'en';
+        let typingIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typingSpeed = 100;
+
+        // Initialize
+        window.addEventListener('load', () => {
+            // Animate rectangle
+            setTimeout(() => {
+                document.getElementById('rectangle').classList.add('animate');
+            }, 100);
+
+            // Show logo
+            setTimeout(() => {
+                document.getElementById('logoSection').classList.add('show');
+            }, 1500);
+
+            // Start typing
+            setTimeout(() => {
+                document.getElementById('typingContainer').classList.add('show');
+                typeText();
+            }, 2500);
+
+            // Show buttons
+            setTimeout(() => {
+                document.getElementById('buttonsContainer').classList.add('show');
+            }, 5500);
+
+            // Show features
+            setTimeout(() => {
+                document.getElementById('feature1').classList.add('show');
+            }, 6000);
+
+            setTimeout(() => {
+                document.getElementById('feature2').classList.add('show');
+            }, 6500);
+
+            // Show bottom CTA
+            setTimeout(() => {
+                document.getElementById('bottomCta').classList.add('show');
+            }, 7000);
+        });
+
+        // Typing effect
+        function typeText() {
+            const texts = translations[currentLang].typingTexts;
+            const currentText = texts[typingIndex];
+            const textSpan = document.getElementById('textSpan');
+
+            if (isDeleting) {
+                textSpan.textContent = currentText.substring(0, charIndex - 1);
+                charIndex--;
+                typingSpeed = 50;
+            } else {
+                textSpan.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+                typingSpeed = 100;
+            }
+
+            if (!isDeleting && charIndex === currentText.length) {
+                isDeleting = true;
+                typingSpeed = 2000; // Pause at end
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                typingIndex = (typingIndex + 1) % texts.length;
+                typingSpeed = 500; // Pause before typing next
+            }
+
+            setTimeout(typeText, typingSpeed);
+        }
+
+        // Language switcher
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const elements = document.querySelectorAll('[data-key]');
+            
+            elements.forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            // Update select
+            document.getElementById('languageSelect').value = lang;
+        }
+
+        // Smooth scroll to top
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Handle RTL for Arabic
+        function updateDirection() {
+            if (currentLang === 'ar') {
+                document.body.style.direction = 'rtl';
+            } else {
+                document.body.style.direction = 'ltr';
+            }
+        }
+
+        // Override changeLanguage to handle RTL
+        const originalChangeLanguage = changeLanguage;
+        changeLanguage = function(lang) {
+            originalChangeLanguage(lang);
+            updateDirection();
+        };
+    </script>
+</body>
+</html>
